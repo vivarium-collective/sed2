@@ -1,4 +1,8 @@
 from process_bigraph.composite import Step, Composite
+from process_bigraph.type_system import types
+from sed2.schemas import sed_types
+
+types.type_registry.register_multiple(sed_types)  # TODO -- this should go through __init__
 
 
 class EstimateParameters(Step):
@@ -63,7 +67,6 @@ class AnalyzeResults(Step):
 
 
 
-
 def test_sed_composite():
 
     workflow = Composite({
@@ -104,7 +107,7 @@ def test_sed_composite():
             'data': {},
             'model': '"something.sbml"',
             'parameter_estimation': {
-                'address': 'local:process_bigraph.experiments.toys.EstimateParameters',
+                'address': 'local:sed2.demo.EstimateParameters',
                 'config': {},
                 'wires': {
                     'inputs': {
@@ -113,7 +116,7 @@ def test_sed_composite():
                     'outputs': {
                         'parameters': ['parameters']}}},
             'simulator': {
-                'address': 'local:process_bigraph.experiments.toys.UniformTimecourse',
+                'address': 'local:sed2.demo.UniformTimecourse',
                 'config': {},
                 'wires': {
                     'inputs': {
@@ -122,7 +125,7 @@ def test_sed_composite():
                     'outputs': {
                         'simulation_results': ['simulation_results']}}},
             'analysis': {
-                'address': 'local:process_bigraph.experiments.toys.AnalyzeResults',
+                'address': 'local:sed2.demo.AnalyzeResults',
                 'config': {},
                 'wires': {
                     'inputs': {
@@ -130,3 +133,9 @@ def test_sed_composite():
                     'outputs': {
                         'analysis_results': ['analysis_results']}}}}},
     )
+
+    workflow.update({}, 0)   # TODO -- this is a step-only workflow, should not require interval
+
+
+if __name__ == '__main__':
+    test_sed_composite()
