@@ -1,5 +1,14 @@
 from process_bigraph.type_system import types  #ProcessTypes
 from sed2.schemas import sed_types
+import pprint
+
+pretty = pprint.PrettyPrinter(indent=2)
+
+
+def pp(x) -> None:
+    """Print ``x`` in a pretty format."""
+    pretty.pprint(x)
+
 
 # types = ProcessTypes()   # TODO -- how will Composite know these types?
 
