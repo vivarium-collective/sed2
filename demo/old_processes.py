@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tellurium as te
 import pandas as pd
-from sed2.core import ports, annotate, register, sed_process_registry
 import libsbml
 import sympy
 
