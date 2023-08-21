@@ -1,55 +1,49 @@
 """
-COBRA FBA Process
+Processes for the demo
 """
-from process_bigraph import Process, Composite, process_registry, types
-import tellurium
+from process_bigraph import Process, Composite, process_registry
+# import libsbml
+# from libsbml import SBMLReader
+from basico import *
 
 
-# types.type_registry.register_multiple(cobra_schemas)
-
-
-class TelluriumProcess(Process):
-    config_schema = {'sbml_model_path': 'sbml'}
+class SBMLSimulator(Process):
+    config_schema = {'model_file': 'string'}
 
     def __init__(self, config=None):
         super().__init__(config)
+        # Load the single cell model into Basico
+        self.copasi_model_object = load_model(self.parameters['model_file'])
+        self.species_list = get_species(model=self.copasi_model_object).index.tolist()
 
-        # initialize a tellurium(roadrunner) simulation object. Load the model in using either sbml(default) or antimony
-        if self.config.get('antimony_string'):
-            self.simulator = tellurium.loada(self.config['antimony_string'])
-        else:
-            self.simulator = tellurium.loadSBMLModel(self.config['sbml_model_path'])
+        x=0
 
-        # extract the variables
-        self.species = self.simulator.get_species()  # PLACEHOLDER!!!!!!!!
-
-    @classmethod
-    def load(cls, sbml_model):
-        return cls({'sbml_model_path': sbml_model})
+    # @classmethod
+    # def load(cls, sbml_model):
+    #     return cls({'model_file': sbml_model})
 
     def schema(self):
-        fluxes_schema = {
-            reaction.name: 'float' for reaction in self.reactions}
         return {
-            'species': fluxes_schema,  # 'dict[string,float]',
+            'species': {
+                species_id: 'float' for species_id in self.species_list
+            },
+            'reactions': {
+                reaction_id: 'float' for reaction_id in self.reactions_list
+            },
         }
 
     def update(self, state, interval):
-        # set the states in tellurium according to what is passing in states
-        for species_id, value in state['species'].items():
-            self.tellurium_object.set_species(species_id, value)
-
-        # run the simulation
-        self.tellurium_object.simulate(0, interval, 1)
-
-        # extract the results. TODO -- get the final values of the self.config['exposed_species'] and put them in the update
-        update = {'species': {}}
-        results = self.tellurium_object.get_data()
-
-        return update
+        return {}
+        # # set the states
+        # for species_id, value in state['species'].items():
+        #     self.tellurium_object.set_species(species_id, value)
+        #
+        # sim_result = self.model.sbml_model.simulate(
+        #     start=0, end=interval, points=1, selections=selection_list)
+        # return {column: sim_result[column] for column in sim_result.colnames}
 
 
-process_registry.register('tellurium', TelluriumProcess)
+process_registry.register('odeint', SBMLSimulator)
 
 
 def test_process():
@@ -58,7 +52,7 @@ def test_process():
     # TODO -- this does not match process schema. there should be warnings.
     sbml_schema = {
         'species_store': 'tree[any]',  # 'dict[string,float]',
-        'tellurium': {
+        'odeint': {
             '_type': 'process',
             '_ports': {
                 'species': 'tree[any]',
@@ -69,10 +63,10 @@ def test_process():
     # this is the instance for the composite process to run
     initial_sim_state = {
         'species_store': {},
-        'fba': {
-            'address': 'local:tellurium',  # using a local toy process
+        'odeint': {
+            'address': 'local:odeint',  # using a local toy process
             'config': {
-                'model_file': '"cobra_process/models/e_coli_core.xml"'
+                'model_file': '"demo/Caravagna2010.xml"'  #
             },
             'interval': '1.0',
             'wires': {
