@@ -4,19 +4,17 @@ Processes for the demo
 from process_bigraph import Process, Composite, process_registry
 # import libsbml
 # from libsbml import SBMLReader
-from basico import *
+from basico import load_model, get_species
 
 
-class SBMLSimulator(Process):
+class CopasiProcess(Process):
     config_schema = {'model_file': 'string'}
 
     def __init__(self, config=None):
         super().__init__(config)
         # Load the single cell model into Basico
-        self.copasi_model_object = load_model(self.parameters['model_file'])
+        self.copasi_model_object = load_model(self.config['model_file'])
         self.species_list = get_species(model=self.copasi_model_object).index.tolist()
-
-        x=0
 
     # @classmethod
     # def load(cls, sbml_model):
@@ -43,7 +41,7 @@ class SBMLSimulator(Process):
         # return {column: sim_result[column] for column in sim_result.colnames}
 
 
-process_registry.register('odeint', SBMLSimulator)
+process_registry.register('copasi', CopasiProcess)
 
 
 def test_process():
@@ -64,7 +62,7 @@ def test_process():
     initial_sim_state = {
         'species_store': {},
         'odeint': {
-            'address': 'local:odeint',  # using a local toy process
+            'address': 'local:copasi',  # using a local toy process
             'config': {
                 'model_file': '"demo/Caravagna2010.xml"'  #
             },

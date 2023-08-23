@@ -6,27 +6,26 @@ import tellurium
 
 
 class TelluriumProcess(Process):
-    config_schema = {'sbml_model_path': 'sbml'}
+    config_schema = {'model_file': 'string'}
 
     def __init__(self, config=None):
         super().__init__(config)
 
         # initialize a tellurium(roadrunner) simulation object. Load the model in using either sbml(default) or antimony
-        if self.config.get('antimony_string'):
-            self.simulator = tellurium.loada(self.config['antimony_string'])
-        else:
-            self.simulator = tellurium.loadSBMLModel(self.config['sbml_model_path'])
+        self.simulator = tellurium.loadSBMLModel(self.config['model_file'])
 
         # extract the variables
-        self.species = self.simulator.get_species()  # PLACEHOLDER!!!!!!!!
+        self.floating_species_list = self.simulator.getFloatingSpeciesIds()
+        self.boundary_species_list = self.simulator.getBoundarySpeciesIds()
+        self.reaction_list = self.simulator.getReactionIds()
 
     @classmethod
     def load(cls, sbml_model):
-        return cls({'sbml_model_path': sbml_model})
+        return cls({'model_file': sbml_model})
 
     def schema(self):
         fluxes_schema = {
-            reaction.name: 'float' for reaction in self.reactions}
+            reaction.name: 'float' for reaction in self.floating_species_list}
         return {
             'species': fluxes_schema,  # 'dict[string,float]',
         }
@@ -66,10 +65,10 @@ def test_process():
     # this is the instance for the composite process to run
     initial_sim_state = {
         'species_store': {},
-        'fba': {
+        'tellurium': {
             'address': 'local:tellurium',  # using a local toy process
             'config': {
-                'model_file': '"cobra_process/models/e_coli_core.xml"'
+                'model_file': '"demo/Caravagna2010.xml"'
             },
             'interval': '1.0',
             'wires': {
