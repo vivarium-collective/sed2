@@ -46,8 +46,6 @@ process_registry.register('copasi', CopasiProcess)
 
 def test_process():
 
-    # this is the schema for the FBA process. It should be pulled from an ontology.
-    # TODO -- this does not match process schema. there should be warnings.
     sbml_schema = {
         'species_store': 'tree[any]',  # 'dict[string,float]',
         'odeint': {

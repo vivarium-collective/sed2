@@ -24,10 +24,13 @@ class TelluriumProcess(Process):
         return cls({'model_file': sbml_model})
 
     def schema(self):
-        fluxes_schema = {
-            reaction.name: 'float' for reaction in self.floating_species_list}
         return {
-            'species': fluxes_schema,  # 'dict[string,float]',
+            'floating_species': {
+                species_id: 'float' for species_id in self.floating_species_list},
+            'boundary_species': {
+                species_id: 'float' for species_id in self.boundary_species_list},
+            'reactions': {
+                reaction_id: 'float' for reaction_id in self.reaction_list},
         }
 
     def update(self, state, interval):
@@ -50,21 +53,25 @@ process_registry.register('tellurium', TelluriumProcess)
 
 def test_process():
 
-    # this is the schema for the FBA process. It should be pulled from an ontology.
-    # TODO -- this does not match process schema. there should be warnings.
     sbml_schema = {
-        'species_store': 'tree[any]',  # 'dict[string,float]',
+        'floating_species_store': 'tree[any]',
+        'boundary_species_store': 'tree[any]',
+        'reactions_store': 'tree[any]',
         'tellurium': {
             '_type': 'process',
             '_ports': {
-                'species': 'tree[any]',
+                'floating_species': 'tree[any]',
+                'boundary_species': 'tree[any]',
+                'reactions': 'tree[any]',
             }
         },
     }
 
     # this is the instance for the composite process to run
     initial_sim_state = {
-        'species_store': {},
+        # 'floating_species_store': {},
+        # 'boundary_species_store': {},
+        # 'reactions_store': {},
         'tellurium': {
             'address': 'local:tellurium',  # using a local toy process
             'config': {
@@ -72,7 +79,9 @@ def test_process():
             },
             'interval': '1.0',
             'wires': {
-                'species': 'species_store',
+                'floating_species': 'floating_species_store',
+                'boundary_species': 'boundary_species_store',
+                'reactions': 'reactions_store'
             }
         },
     }
