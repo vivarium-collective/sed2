@@ -6,7 +6,10 @@ import tellurium as te
 
 
 class TelluriumProcess(Process):
-    config_schema = {'model_file': 'string'}
+    config_schema = {
+        'sbml_model_path': 'string',
+        'antimony_string': 'string',
+    }
 
     def __init__(self, config=None):
         super().__init__(config)
@@ -53,6 +56,7 @@ class TelluriumProcess(Process):
         boundary_species_dict = dict(zip(self.boundary_species_list, self.boundary_species_initial))
         model_parameters_dict = dict(zip(self.model_parameters_list, self.model_parameter_values))
         return {
+            'time': 0.0,
             'floating_species': floating_species_dict,
             'boundary_species': boundary_species_dict,
             'model_parameters': model_parameters_dict
@@ -100,54 +104,62 @@ process_registry.register('tellurium', TelluriumProcess)
 
 
 def test_process():
-    sbml_model_path = "demo/BIOMD0000000061_url.xml"
-
-    sbml_schema = {
-        'floating_species_store': 'tree[any]',
-        'boundary_species_store': 'tree[any]',
-        'reactions_store': 'tree[any]',
-        'tellurium': {
-            '_type': 'process',
-            '_ports': {
-                'floating_species': 'tree[any]',
-                'boundary_species': 'tree[any]',
-                'reactions': 'tree[any]',
-            }
-        },
-    }
 
     # this is the instance for the composite process to run
-    initial_sim_state = {
-        # 'floating_species_store': {},
-        # 'boundary_species_store': {},
-        # 'reactions_store': {},
+    instance = {
         'tellurium': {
+            '_type': 'process',
             'address': 'local:tellurium',  # using a local toy process
             'config': {
-                'sbml_model_path': sbml_model_path
+                'sbml_model_path': '"demo/BIOMD0000000061_url.xml"',
             },
-            'interval': '1.0',
+            # 'interval': '1.0',
             'wires': {
+                'time': 'time_store',
                 'floating_species': 'floating_species_store',
                 'boundary_species': 'boundary_species_store',
-                'reactions': 'reactions_store'
+                'model_parameters': 'model_parameters_store',
+                'reactions': 'reactions_store',
             }
         },
+        'emitter': {
+            '_type': 'step',
+            'address': 'local:ram-emitter',
+            'config': {
+                'ports': {
+                    'inputs': {
+                        'floating_species': 'tree[float]'
+                    }
+                }
+            },
+            'wires': {
+                'inputs': {
+                    'floating_species': ['floating_species_store'],
+                }
+            }
+        }
     }
 
     # make the composite
     workflow = Composite({
-        'composition': sbml_schema,
-        'schema': {
-            'results': 'tree[any]'},
-        'bridge': {
-            'results': ['fluxes']},
-        'state': initial_sim_state
+        # 'schema': {
+        #     'results': 'tree[any]'},
+        # 'bridge': {
+        #     'results': ['fluxes']},
+        'state': instance
     })
 
+    # initial_state = workflow.initial_state()
+
     # run
-    update = workflow.update({}, 1)
+    update = workflow.update(
+        {}, 10)
     print(f'UPDATE: {update}')
+
+    # gather results
+    results = workflow.gather_results()
+    print(f'RESULTS: {results}')
+
 
 
 if __name__ == '__main__':
