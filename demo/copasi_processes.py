@@ -2,8 +2,6 @@
 Processes for the demo
 """
 from process_bigraph import Process, Composite, process_registry
-# import libsbml
-# from libsbml import SBMLReader
 from basico import load_model, get_species
 
 
@@ -15,10 +13,6 @@ class CopasiProcess(Process):
         # Load the single cell model into Basico
         self.copasi_model_object = load_model(self.config['model_file'])
         self.species_list = get_species(model=self.copasi_model_object).index.tolist()
-
-    # @classmethod
-    # def load(cls, sbml_model):
-    #     return cls({'model_file': sbml_model})
 
     def schema(self):
         return {
@@ -46,25 +40,13 @@ process_registry.register('copasi', CopasiProcess)
 
 def test_process():
 
-    sbml_schema = {
-        'species_store': 'tree[any]',  # 'dict[string,float]',
-        'odeint': {
-            '_type': 'process',
-            '_ports': {
-                'species': 'tree[any]',
-            }
-        },
-    }
-
     # this is the instance for the composite process to run
     initial_sim_state = {
-        'species_store': {},
         'odeint': {
             'address': 'local:copasi',  # using a local toy process
             'config': {
                 'model_file': '"demo/Caravagna2010.xml"'  #
             },
-            'interval': '1.0',
             'wires': {
                 'species': 'species_store',
             }
@@ -73,7 +55,6 @@ def test_process():
 
     # make the composite
     workflow = Composite({
-        'composition': sbml_schema,
         'schema': {
             'results': 'tree[any]'},
         'bridge': {
