@@ -2,6 +2,7 @@
 Tellurium Process
 """
 from process_bigraph import Process, Composite, process_registry
+from sed2 import pf
 import tellurium as te
 
 
@@ -38,7 +39,7 @@ class TelluriumProcess(Process):
             # 'time',
         ]
 
-        # Get the species (floating and boundary
+        # Get the species (floating and boundary)
         self.floating_species_list = self.simulator.getFloatingSpeciesIds()
         self.boundary_species_list = self.simulator.getBoundarySpeciesIds()
         self.floating_species_initial = self.simulator.getFloatingSpeciesConcentrations()
@@ -152,7 +153,7 @@ def test_process():
 
     # gather results
     results = workflow.gather_results()
-    print(f'RESULTS: {results}')
+    print(f'RESULTS: {pf(results)}')
 
 
 
