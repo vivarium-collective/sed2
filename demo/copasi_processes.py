@@ -1,7 +1,7 @@
 """
 Processes for the demo
 """
-from process_bigraph import Process, Composite, process_registry
+from process_bigraph import Process, Composite
 from sed2 import pf
 from basico import (
     load_model, get_species, get_parameters, get_reactions, set_species, run_time_course)
@@ -94,7 +94,6 @@ class CopasiProcess(Process):
 
 
 
-process_registry.register('copasi', CopasiProcess)
 
 
 def test_process():

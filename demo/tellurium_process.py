@@ -1,7 +1,7 @@
 """
 Tellurium Process
 """
-from process_bigraph import Process, Composite, process_registry
+from process_bigraph import Process, Composite
 from sed2 import pf
 import tellurium as te
 
@@ -101,8 +101,6 @@ class TelluriumProcess(Process):
         return update
 
 
-process_registry.register('tellurium', TelluriumProcess)
-
 
 def test_process():
 
@@ -114,7 +112,6 @@ def test_process():
             'config': {
                 'sbml_model_path': 'demo/BIOMD0000000061_url.xml',
             },
-            # 'interval': '1.0',
             'wires': {
                 'time': ['time_store'],
                 'floating_species': ['floating_species_store'],
