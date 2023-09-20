@@ -1,7 +1,7 @@
 """
 Tellurium Process
 """
-from process_bigraph import Process, Composite
+from process_bigraph import Process, Composite, process_registry
 from sed2 import pf
 import tellurium as te
 
@@ -68,16 +68,17 @@ class TelluriumProcess(Process):
         return cls({'model_file': sbml_model})
 
     def schema(self):
+        float_set = {'_type': 'float', '_apply': 'set'}
         return {
             'time': 'float',
             'floating_species': {
-                species_id: 'float' for species_id in self.floating_species_list},
+                species_id: float_set for species_id in self.floating_species_list},
             'boundary_species': {
-                species_id: 'float' for species_id in self.boundary_species_list},
+                species_id: float_set for species_id in self.boundary_species_list},
             'model_parameters': {
-                param_id: 'float' for param_id in self.model_parameters_list},
+                param_id: float_set for param_id in self.model_parameters_list},
             'reactions': {
-                reaction_id: 'float' for reaction_id in self.reaction_list},
+                reaction_id: float_set for reaction_id in self.reaction_list},
         }
 
     def update(self, state, interval):
@@ -100,6 +101,8 @@ class TelluriumProcess(Process):
                     update[port_id][cat_id] = self.simulator.getValue(cat_id)
         return update
 
+
+process_registry.register('tellurium', TelluriumProcess)
 
 
 def test_process():

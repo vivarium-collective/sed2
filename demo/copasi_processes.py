@@ -1,7 +1,7 @@
 """
 Processes for the demo
 """
-from process_bigraph import Process, Composite
+from process_bigraph import Process, Composite, process_registry
 from sed2 import pf
 from basico import (
     load_model, get_species, get_parameters, get_reactions, set_species, run_time_course)
@@ -58,7 +58,10 @@ class CopasiProcess(Process):
         schema = {
             'time': 'float',
             'floating_species': {
-                species_id: 'float' for species_id in self.floating_species_list},   # TODO -- this should be a float with a set updater
+                species_id: {
+                    '_type': 'float',
+                    '_apply': 'set',
+                } for species_id in self.floating_species_list},   # TODO -- this should be a float with a set updater
             # 'boundary_species': {
             #     species_id: 'float' for species_id in self.boundary_species_list},
             'model_parameters': {
@@ -93,7 +96,7 @@ class CopasiProcess(Process):
         return results
 
 
-
+process_registry.register('copasi', CopasiProcess)
 
 
 def test_process():
