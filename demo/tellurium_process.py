@@ -111,15 +111,15 @@ def test_process():
             '_type': 'process',
             'address': 'local:tellurium',  # using a local toy process
             'config': {
-                'sbml_model_path': '"demo/BIOMD0000000061_url.xml"',
+                'sbml_model_path': 'demo/BIOMD0000000061_url.xml',
             },
             # 'interval': '1.0',
             'wires': {
-                'time': 'time_store',
-                'floating_species': 'floating_species_store',
-                'boundary_species': 'boundary_species_store',
-                'model_parameters': 'model_parameters_store',
-                'reactions': 'reactions_store',
+                'time': ['time_store'],
+                'floating_species': ['floating_species_store'],
+                'boundary_species': ['boundary_species_store'],
+                'model_parameters': ['model_parameters_store'],
+                'reactions': ['reactions_store'],
             }
         },
         'emitter': {
@@ -142,19 +142,13 @@ def test_process():
 
     # make the composite
     workflow = Composite({
-        # 'schema': {
-        #     'results': 'tree[any]'},
-        # 'bridge': {
-        #     'results': ['fluxes']},
         'state': instance
     })
 
     # initial_state = workflow.initial_state()
 
     # run
-    update = workflow.update(
-        {}, 10)
-    print(f'UPDATE: {update}')
+    workflow.run(10)
 
     # gather results
     results = workflow.gather_results()

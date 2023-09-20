@@ -14,14 +14,17 @@ class CopasiProcess(Process):
         self.copasi_model_object = load_model(self.config['model_file'])
         self.species_list = get_species(model=self.copasi_model_object).index.tolist()
 
+    def initial_state(self):
+        return {}
+
     def schema(self):
         return {
             'species': {
                 species_id: 'float' for species_id in self.species_list
             },
-            'reactions': {
-                reaction_id: 'float' for reaction_id in self.reactions_list
-            },
+            # 'reactions': {
+            #     reaction_id: 'float' for reaction_id in self.reactions_list
+            # },
         }
 
     def update(self, state, interval):
@@ -43,30 +46,47 @@ def test_process():
     # this is the instance for the composite process to run
     initial_sim_state = {
         'odeint': {
+            '_type': 'process',
             'address': 'local:copasi',  # using a local toy process
             'config': {
-                'model_file': '"demo/Caravagna2010.xml"'  #
+                'model_file': 'demo/Caravagna2010.xml'  #
             },
             'wires': {
-                'species': 'species_store',
+                'species': ['species_store'],
+                # 'reactions': ['reactions_store'],
             }
         },
+        'emitter': {
+            '_type': 'step',
+            'address': 'local:ram-emitter',
+            'config': {
+                'ports': {
+                    'inputs': {
+                        'floating_species': 'tree[float]'
+                    }
+                }
+            },
+            'wires': {
+                'inputs': {
+                    'floating_species': ['floating_species_store'],
+                }
+            }
+        }
     }
 
     # make the composite
     workflow = Composite({
-        'schema': {
-            'results': 'tree[any]'},
-        'bridge': {
-            'results': ['fluxes']},
         'state': initial_sim_state
     })
 
     # workflow.export_composite(filename='cobra_template')
 
     # run
-    update = workflow.update({}, 1)  # TODO -- this is a step-only workflow, should not require interval. Also need emitter.
-    print(f'UPDATE: {update}')
+    workflow.run(10)
+
+    # gather results
+    results = workflow.gather_results()
+    print(f'RESULTS: {results}')
 
 
 if __name__ == '__main__':
