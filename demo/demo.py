@@ -8,6 +8,8 @@ Example scripts were provided here: https://docs.google.com/document/d/1jZkaNhM_
 '''
 
 from process_bigraph import Composite
+from sed2 import pf
+
 
 def test_sed1():
     instance = {
@@ -30,6 +32,8 @@ def test_sed1():
         # },
         'plot2d': {
             '_type': 'step',
+            'address': 'local:plot2d',
+            'config': {},
             'wires': {
                 'results': 'results',
                 'curves': 'curves',
@@ -40,7 +44,7 @@ def test_sed1():
         },
         'uniform_time_course': {
             '_type': 'process',
-            'address': 'local:tellurium',  # using a local toy process
+            'address': 'local:tellurium',
             'config': {
                 'sbml_model_path': 'demo/BIOMD0000000061_url.xml',
             },
@@ -54,8 +58,21 @@ def test_sed1():
         },
     }
 
-    Composite({'state': instance})
+    workflow = Composite({'state': instance})
+
+    # run
+    workflow.run(10)
+
+    # gather results
+    results = workflow.gather_results()
+    print(f'RESULTS: {pf(results)}')
+
+
+def test_sed2():
+    pass
+
 
 
 if __name__ == '__main__':
     test_sed1()
+    test_sed2()
