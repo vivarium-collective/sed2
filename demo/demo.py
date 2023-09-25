@@ -7,55 +7,54 @@ JSON format to executable python script.
 Example scripts were provided here: https://docs.google.com/document/d/1jZkaNhM_cOqMWtd4sJZ9b0VGXPTLsDKsRNI5Yvu4nOA/edit
 '''
 
-from process_bigraph import Composite
+from process_bigraph import Composite, process_registry, types
 from sed2 import pf
+from demo_processes import process_registry  # trigger process registration by importing
+# import importlib
+# importlib.reload(demo_processes)
 
 
 def test_sed1():
     instance = {
-        # 'time_start': 0,
-        # 'time_end': 10,
-        # 'num_points': 50,
-        # 'selection_list': ['time', 'S', 'Z'],
-        # 'model_path': 'demo/BIOMD0000000061_url.xml',
-        # 'curves': {
-        #     'Susceptible': {'x': 'time', 'y': 'S'},
-        #     'Zombie': {'x': 'time', 'y': 'Z'}
-        # },
-        # 'figure1name': '"Figure1"',
-        # 'sbml_model_from_path': {
-        #     '_type': 'model_path',
-        #     'wires': {
-        #         'path_to_sbml': 'model_path',
-        #         'model': 'model_instance'
-        #     },
-        # },
+        'start_time_store': 0,
+        'run_time_store': 1,
+        'uniform_time_course': {
+            '_type': 'step',   # TODO -- should this be a step that runs once?
+            'address': 'local:tellurium_step',
+            'config': {
+                'sbml_model_path': 'demo_processes/BIOMD0000000061_url.xml',
+            },
+            'wires': {
+                'inputs': {
+                    'time': ['start_time_store'],
+                    'run_time': ['run_time_store'],
+                    'floating_species': ['floating_species_store'],
+                    'boundary_species': ['boundary_species_store'],
+                    'model_parameters': ['model_parameters_store'],
+                    'reactions': ['reactions_store'],
+                },
+                'outputs': {
+                    'results': ['results_store'],
+                }
+            }
+        },
         'plot2d': {
             '_type': 'step',
             'address': 'local:plot2d',
             'config': {},
             'wires': {
-                'results': 'results',
-                'curves': 'curves',
-                'name': 'figure1name',
-                'figure': 'figure'
+                'inputs': {
+                    'results': ['results'],
+                    'curves': ['curves'],
+                    'name': ['figure1name']
+                },
+                'outputs': {
+                    'figure': ['figure_store']
+                }
             },
             '_depends_on': ['uniform_time_course'],
         },
-        'uniform_time_course': {
-            '_type': 'process',
-            'address': 'local:tellurium',
-            'config': {
-                'sbml_model_path': 'demo/BIOMD0000000061_url.xml',
-            },
-            'wires': {
-                'time': ['time_store'],
-                'floating_species': ['floating_species_store'],
-                'boundary_species': ['boundary_species_store'],
-                'model_parameters': ['model_parameters_store'],
-                'reactions': ['reactions_store'],
-            }
-        },
+
     }
 
     workflow = Composite({'state': instance})

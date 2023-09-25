@@ -1,5 +1,5 @@
 """
-Processes for the demo
+Processes for the demo_processes
 """
 from process_bigraph import Process, Composite, process_registry
 from sed2 import pf
@@ -107,7 +107,7 @@ def test_process():
             '_type': 'process',
             'address': 'local:copasi',  # using a local toy process
             'config': {
-                'model_file': 'demo/Caravagna2010.xml'  #
+                'model_file': 'demo_processes/Caravagna2010.xml'  #
             },
             'wires': {
                 'time': ['time_store'],
