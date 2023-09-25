@@ -24,11 +24,6 @@ class TelluriumStep(Step):
         else:
             raise Exception('the config requires either an "antimony_string" or an "sbml_model_path"')
 
-        # # Adjust solver tolerances
-        # self.simulator.integrator.absolute_tolerance = 1e-8
-        # self.simulator.integrator.relative_tolerance = 1e-6
-        # self.simulator.integrator.stiff = True
-
         self.input_ports = [
             'floating_species',
             'boundary_species',
@@ -99,16 +94,8 @@ class TelluriumStep(Step):
         #             self.simulator.setValue(cat_id, value)
 
         # run the simulation
-        # results = self.simulator.simulate(0, 1, 10)
         results = self.simulator.simulate(inputs['time'], inputs['run_time'], 10)  # TODO -- adjust the number of saves teps
 
-        # # extract the results and convert to update
-        # update = {}
-        # for port_id, values in inputs.items():
-        #     if port_id in self.output_ports:
-        #         update[port_id] = {}
-        #         for cat_id in values.keys():
-        #             update[port_id][cat_id] = self.simulator.getValue(cat_id)
         return {
             'results': results}
 
@@ -268,6 +255,7 @@ def test_step():
     instance = {
         'start_time_store': 0,
         'run_time_store': 1,
+        'results_store': None,  # TODO -- why is this not automatically added into the schema because of tellurium schema?
         'tellurium': {
             '_type': 'step',
             'address': 'local:tellurium_step',  # using a local toy process
@@ -287,22 +275,6 @@ def test_step():
                     'results': ['results_store'],
                 }
             }
-        },
-        'emitter': {
-            '_type': 'step',
-            'address': 'local:ram-emitter',
-            'config': {
-                'ports': {
-                    'inputs': {
-                        'floating_species': 'tree[float]'
-                    }
-                }
-            },
-            'wires': {
-                'inputs': {
-                    'floating_species': ['floating_species_store'],
-                }
-            }
         }
     }
 
@@ -314,11 +286,13 @@ def test_step():
     # initial_state = workflow.initial_state()
 
     # run
-    workflow.run(10)
+    update = workflow.run(10)
+
+    print(f'UPDATE: {update}')
 
     # gather results
-    results = workflow.gather_results()
-    print(f'RESULTS: {pf(results)}')
+    # results = workflow.gather_results()
+    # print(f'RESULTS: {pf(results)}')
 
 
 
