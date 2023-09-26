@@ -1,16 +1,17 @@
 """
 Tellurium Process
 """
-from process_bigraph import Process, Step, Composite, process_registry
+from process_bigraph import Process, Step, Composite, process_registry, types
 from sed2 import pf
 import tellurium as te
+import numpy as np
+
 
 
 class TelluriumStep(Step):
     config_schema = {
         'sbml_model_path': 'string',
         'antimony_string': 'string',
-        'record_history': 'bool',  # TODO -- do we have this type?
     }
 
     def __init__(self, config=None):
@@ -49,51 +50,24 @@ class TelluriumStep(Step):
 
     # TODO -- is initial state even working for steps?
     def initial_state(self, config=None):
-        floating_species_dict = dict(zip(self.floating_species_list, self.floating_species_initial))
-        boundary_species_dict = dict(zip(self.boundary_species_list, self.boundary_species_initial))
-        model_parameters_dict = dict(zip(self.model_parameters_list, self.model_parameter_values))
         return {
             'inputs': {
                 'time': 0,
-                'floating_species': floating_species_dict,
-                'boundary_species': boundary_species_dict,
-                'model_parameters': model_parameters_dict
             },
-            'outputs': {
-                'floating_species': floating_species_dict,
-            }
         }
 
     def schema(self):
-        float_set = {'_type': 'float', '_apply': 'set'}
         return {
             'inputs': {
                 'time': 'float',
                 'run_time': 'float',
-                'floating_species': {
-                    species_id: float_set for species_id in self.floating_species_list},
-                'boundary_species': {
-                    species_id: float_set for species_id in self.boundary_species_list},
-                'model_parameters': {
-                    param_id: float_set for param_id in self.model_parameters_list},
-                'reactions': {
-                    reaction_id: float_set for reaction_id in self.reaction_list},
             },
             'outputs': {
-                'results': 'float'  # THis is a roadrunner._roadrunner.NamedArray
+                'results': 'numpy_array'  # This is a roadrunner._roadrunner.NamedArray
             }
         }
 
     def update(self, inputs):
-
-        # TODO -- need initial_state for Step in order to set these values
-        # # set tellurium values according to what is passed in states
-        # for port_id, values in inputs.items():
-        #     if port_id in self.input_ports:  # only update from input ports
-        #         for cat_id, value in values.items():
-        #             self.simulator.setValue(cat_id, value)
-
-        # run the simulation
         results = self.simulator.simulate(inputs['time'], inputs['run_time'], 10)  # TODO -- adjust the number of saves teps
 
         return {
