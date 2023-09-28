@@ -45,7 +45,7 @@ class Plot2D(Step):
         return {
             'inputs': {
                 'results': {'_type': 'numpy_array', '_apply': 'set'},
-                'curves': 'list[list[string]]',
+                'curves': 'list[dict]',
             },
             'outputs': {
                 'figure_path': 'string'
@@ -58,9 +58,9 @@ class Plot2D(Step):
         name = self.config['filename']
 
         plt.figure(name)
-        for curve_name, axes in curves.items():
-            x_values = results[axes['x']]
-            y_values = results[axes['y']]
+        for curve in curves:
+            x_values = results[curve['x']]
+            y_values = results[curve['y']]
             plt.plot(x_values, y_values, label=name)
 
         figure_path = f'out/{name}'
