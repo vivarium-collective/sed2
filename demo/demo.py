@@ -17,8 +17,8 @@ def test_sed1():
         'start_time_store': 0,
         'run_time_store': 10,
         'curves_store': [
-            {'x': 'time', 'y': 'GlcX'},
-            {'x': 'time', 'y': 'Glc'}
+            {'x': 'time', 'y': '[GlcX]'},
+            {'x': 'time', 'y': '[Glc]'}
         ],
         'figure_store': {'_type': 'string'},  # TODO -- this should not be needed. Step output ports needs to project into schema.
         'uniform_time_course': {
@@ -60,6 +60,7 @@ def test_sed1():
     })
 
     fig = workflow.state['figure_store']
+    print(f'FIGURE: {fig}')
 
 
 def test_sed2():

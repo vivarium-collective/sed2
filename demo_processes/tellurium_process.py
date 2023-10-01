@@ -5,8 +5,6 @@ from process_bigraph import Process, Step, Composite, process_registry, types
 from sed2 import pf
 import tellurium as te
 import numpy as np
-import pandas as pd
-
 
 
 class TelluriumStep(Step):
@@ -51,18 +49,10 @@ class TelluriumStep(Step):
 
     # TODO -- is initial state even working for steps?
     def initial_state(self, config=None):
-        initial_time = 0
-        initial_floating_species = pd.DataFrame(
-            [self.floating_species_initial],
-            columns=self.floating_species_list,
-            index=[initial_time])
         return {
             'inputs': {
                 'time': 0,
             },
-            'output': {
-                'results': initial_floating_species
-            }
         }
 
     def schema(self):
@@ -78,7 +68,6 @@ class TelluriumStep(Step):
 
     def update(self, inputs):
         results = self.simulator.simulate(inputs['time'], inputs['run_time'], 10)  # TODO -- adjust the number of saves teps
-
         return {
             'results': results}
 
