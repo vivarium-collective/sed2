@@ -20,8 +20,7 @@ def test_sed1():
             {'x': 'time', 'y': 'GlcX'},
             {'x': 'time', 'y': 'Glc'}
         ],
-        'figure_store': {
-            '_type': 'string'},  # TODO -- this should not be needed. Step output ports needs to project into schema.
+        'figure_store': {'_type': 'string'},  # TODO -- this should not be needed. Step output ports needs to project into schema.
         'uniform_time_course': {
             '_type': 'step',
             'address': 'local:tellurium_step',
