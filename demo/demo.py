@@ -7,9 +7,7 @@ JSON format to executable python script.
 Example scripts were provided here: https://docs.google.com/document/d/1jZkaNhM_cOqMWtd4sJZ9b0VGXPTLsDKsRNI5Yvu4nOA/edit
 '''
 
-from process_bigraph import Composite, process_registry, types
-from sed2 import pf
-from demo_processes import process_registry  # trigger process registration by importing
+from process_bigraph import Composite
 
 
 def test_sed1():
@@ -20,7 +18,7 @@ def test_sed1():
             {'x': 'time', 'y': '[GlcX]'},
             {'x': 'time', 'y': '[Glc]'}
         ],
-        'figure_store': {'_type': 'string'},  # TODO -- this should not be needed. Step output ports needs to project into schema.
+        'figure_store': {'_type': 'string'},
         'uniform_time_course': {
             '_type': 'step',
             'address': 'local:tellurium_step',
@@ -33,7 +31,7 @@ def test_sed1():
                     'run_time': ['run_time_store'],
                 },
                 'outputs': {
-                    'results': ['results_store'],   # This is named array
+                    'results': ['results_store'],
                 }
             }
         },
@@ -45,7 +43,7 @@ def test_sed1():
             },
             'wires': {
                 'inputs': {
-                    'results': ['results_store'],  # This will run when the results are updated
+                    'results': ['results_store'],
                     'curves': ['curves_store'],
                 },
                 'outputs': {
@@ -63,11 +61,86 @@ def test_sed1():
     print(f'FIGURE: {fig}')
 
 
-def test_sed2():
-    pass
+def test_sed19():
+    # Run multiple stochastic simulations, compute means and standard deviations.
+    instance = {
+        'summary_statistics': {
+            '_type': 'step',
+            'address': '',
+            'config': {
+                'report': ['mean', 'standard_deviation'],
+                'n_sims': 10,
+            },
+            'wires': {
+                'simulation': ['sim'],
+                'results': ['results_store'],
+            },
+            'sim': {
+                '_type': 'step',
+                'address': 'local:tellurium_step',
+                'config': {
+                    'sbml_model_path': 'demo_processes/BIOMD0000000061_url.xml',
+                },
+                'wires': {
+                    'inputs': {
+                        'time': ['start_time_store'],
+                        'run_time': ['run_time_store'],
+                    },
+                    'outputs': {
+                        'results': ['results_store'],
+                    }
+                }
+            },
+        }
+    }
+
+    workflow = Composite({
+        'state': instance
+    })
+
+    workflow.run()
+
+
+def test_sed21():
+    # Run a simulation, change the structure of the model, rerun the simulation, compare.
+    instance = {
+        'run_ensembles': {
+            '_type': 'step',
+            'address': '',
+            'config': {},
+            'sim': {
+                '_type': 'step',
+                'address': 'local:tellurium_step',
+                'config': {
+                    'sbml_model_path': 'demo_processes/BIOMD0000000061_url.xml',
+                },
+                'wires': {
+                    'inputs': {
+                        'time': ['start_time_store'],
+                        'run_time': ['run_time_store'],
+                    },
+                    'outputs': {
+                        'results': ['results_store'],
+                    }
+                }
+            },
+            'wires': {
+                'simulation': ['sim']
+            },
+        },
+        'compare_results': {
+            '_type': 'step',
+        }
+    }
+
+    workflow = Composite({
+        'state': instance
+    })
+
+    workflow.run()
 
 
 
 if __name__ == '__main__':
     test_sed1()
-    test_sed2()
+    test_sed19()

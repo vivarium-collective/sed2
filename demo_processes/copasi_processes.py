@@ -4,7 +4,8 @@ Processes for the demo_processes
 from process_bigraph import Process, Composite, process_registry
 from sed2 import pf
 from basico import (
-    load_model, get_species, get_parameters, get_reactions, set_species, run_time_course)
+    load_model, get_species, get_parameters, get_reactions, set_species, run_time_course, get_compartments, model_info
+)
 
 
 class CopasiProcess(Process):
@@ -35,6 +36,8 @@ class CopasiProcess(Process):
         # Get the species (floating and boundary)
         self.floating_species_list = get_species(model=self.copasi_model_object).index.tolist()
         self.floating_species_initial = get_species(model=self.copasi_model_object)['concentration'].tolist()
+        # self.boundary_species_list = get_species(model=self.copasi_model_object).index.tolist()
+        # self.boundary_species_initial = get_species(model=self.copasi_model_object)['concentration'].tolist()
 
         # Get the list of parameters and their values
         self.model_parameters_list = get_parameters(model=self.copasi_model_object).index.tolist()
@@ -42,6 +45,9 @@ class CopasiProcess(Process):
 
         # Get a list of reactions
         self.reaction_list = get_reactions(model=self.copasi_model_object).index.tolist()
+
+        # Get a list of compartments
+        self.compartments_list = get_compartments(model=self.copasi_model_object).index.tolist()
 
     def initial_state(self):
         floating_species_dict = dict(zip(self.floating_species_list, self.floating_species_initial))
