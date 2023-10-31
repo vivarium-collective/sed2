@@ -3,7 +3,112 @@ import json
 from process_bigraph import Composite
 
 
+def convert_path(path):
+    if isinstance(path, list):
+        path = tuple(path)
+    elif not isinstance(path, tuple):
+        path = (path,)
+    return path
 
+def key_for_value(d, looking):
+    """Get the key associated with a value in a dictionary"""
+    found = None
+    for key, value in d.items():
+        if looking == value:
+            found = key
+            break
+    return found
+
+
+class Node:
+
+    def __init__(self, outer=None):
+        self.inner = {}
+        self.outer = outer
+        self.value = None
+        self.leaf = False
+
+    def __getitem__(self, path):
+        path = convert_path(path)
+        return self.get_path(path)
+
+    def __setitem__(self, path, value):
+        path = convert_path(path)
+        self.set_path(path, value)
+
+    def set_path(self, path, value):
+        '''Set a value at a path in the hierarchy.'''
+
+        # this case only when called directly
+        if len(path) == 0:
+            if isinstance(value, Node):
+                self.value = value.value
+            else:
+                self.value = value
+
+        elif len(path) == 1:
+            final = path[0]
+            if isinstance(value, Node):
+                raise Exception(
+                    f"the store being inserted at {path} is already in a tree "
+                    f"at {value.path_for()}: {value.get_value()}")
+            else:
+                down = self.get_path((final,))
+                if down:
+                    if not down.leaf:
+                        Exception(f'trying to set the value {value} of a branch at {down.path_for()}')
+                    down.value = value
+                else:
+                    Exception(f'trying to set the value {value} at a path that does not exist {final} at {self.path_for()}')
+
+        elif len(path) > 1:
+            head = path[0]
+            tail = path[1:]
+            down = self.get_path((head,))
+            if down:
+                down.set_path(tail, value)
+            else:
+                Exception(f'trying to set the value {value} at a path that does not exist {path} at {self.path_for()}')
+
+        else:
+            raise Exception("this should never happen")
+
+    def get_path(self, path):
+        """Get the node at the given path relative to this node."""
+
+        if path:
+            step = path[0]
+            if step == '..':
+                child = self.outer
+            else:
+                child = self.inner.get(step)
+
+            if child:
+                return child.get_path(path[1:])
+            else:
+                raise Exception(
+                    f'{path} is not a valid path from '
+                    f'{self.path_for()}')
+        return self
+
+    def path_for(self):
+        """ Find the path to this node."""
+        if self.outer:
+            key = key_for_value(self.outer.inner, self)
+            above = self.outer.path_for()
+            return above + (key,)
+        return tuple()
+
+    def get_value(self, condition=None, f=None):
+        """
+        Pull the values out of the tree in a structure symmetrical to the tree.
+        """
+        if self.inner:
+            return {
+                key: f(child.get_value(condition, f))
+                for key, child in self.inner.items()
+                if condition(child)}
+        return self.value
 
 
 class Builder:
@@ -16,6 +121,7 @@ class Builder:
         self.outputs = {}
 
         # TODO
+        self.tree = Node()
         self.composite = {}
 
     def from_file(self, filepath):
