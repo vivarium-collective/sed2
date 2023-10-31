@@ -1,4 +1,3 @@
-
 import json
 from process_bigraph import Composite
 
@@ -10,8 +9,11 @@ def convert_path(path):
         path = (path,)
     return path
 
+
 def key_for_value(d, looking):
-    """Get the key associated with a value in a dictionary"""
+    """
+    Get the key associated with a value in a dictionary.
+    """
     found = None
     for key, value in d.items():
         if looking == value:
@@ -37,7 +39,9 @@ class Node:
         self.set_path(path, value)
 
     def set_path(self, path, value):
-        '''Set a value at a path in the hierarchy.'''
+        '''
+        Set a value at a path in the hierarchy.
+        '''
 
         # this case only when called directly
         if len(path) == 0:
@@ -59,7 +63,8 @@ class Node:
                         Exception(f'trying to set the value {value} of a branch at {down.path_for()}')
                     down.value = value
                 else:
-                    Exception(f'trying to set the value {value} at a path that does not exist {final} at {self.path_for()}')
+                    Exception(
+                        f'trying to set the value {value} at a path that does not exist {final} at {self.path_for()}')
 
         elif len(path) > 1:
             head = path[0]
@@ -74,7 +79,9 @@ class Node:
             raise Exception("this should never happen")
 
     def get_path(self, path):
-        """Get the node at the given path relative to this node."""
+        """
+        Get the node at the given path relative to this node.
+        """
 
         if path:
             step = path[0]
@@ -92,7 +99,9 @@ class Node:
         return self
 
     def path_for(self):
-        """ Find the path to this node."""
+        """
+        Find the path to this node.
+        """
         if self.outer:
             key = key_for_value(self.outer.inner, self)
             above = self.outer.path_for()
@@ -109,6 +118,15 @@ class Node:
                 for key, child in self.inner.items()
                 if condition(child)}
         return self.value
+
+    def top(self):
+        """
+        Find the top of this tree.
+        """
+
+        if self.outer:
+            return self.outer.top()
+        return self
 
 
 class Builder:
@@ -247,9 +265,6 @@ def test_builder_sed19():
         kisao_id='0000029',  # Gillespie direct algorithm
     )
 
-
-
-
     # Define a stochastic simulation
     # sed.add_batch()  # TODO do we want to support navigating nested hierarchy?
 
@@ -297,7 +312,6 @@ def test_builder_sed19():
 
     # Execute the simulation experiment
     results = sed.run()
-
 
 
 if __name__ == '__main__':
