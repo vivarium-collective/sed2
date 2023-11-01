@@ -1,6 +1,6 @@
 # from process_bigraph.type_system import types  #ProcessTypes
 import pprint
-from sed2.api import Builder
+from sed2.builder import Builder
 
 pretty = pprint.PrettyPrinter(indent=2)
 
