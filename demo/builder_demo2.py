@@ -1,3 +1,8 @@
+"""
+SED2 builder
+"""
+import os
+import json
 import uuid
 from process_bigraph import Composite
 from sed2.builder import Builder
@@ -123,8 +128,12 @@ class SEDBuilder(Builder):
     def print(self):
         print(pf(self.bigraph))
 
-    def save_file(self, filename=None):
-        pass
+    def save_file(self, filename=None, out_dir='out'):
+        composite_dict = self.bigraph
+        file_path = os.path.join(out_dir, filename)
+        with open(file_path, 'w') as file:
+            json.dump(composite_dict, file, indent=4)
+
 
     def execute(self):
         experiment = Composite({'state': self.bigraph})
@@ -169,7 +178,7 @@ def test_builder():
     # make the second step
     sed.start_step()
 
-    # Now calculate the mean and standard deviation for 'mol1' across all simulations in step 1
+    # calculate the mean and standard deviation for 'mol1' across all simulations in step 1
     sed.add_data_generator(
         data_id='stats_glc',
         observables='mol1',
@@ -192,9 +201,12 @@ def test_builder():
     # print to console
     sed.print()
 
+    # save the sed2 file
     sed.save_file(filename='sed2demo')
+    # sed.save_xml()
+    # sed.save_json()
 
-    # Execute all the steps in the simulation experiment design
+    # execute all the steps in the simulation experiment design
     sed.execute()
 
 
