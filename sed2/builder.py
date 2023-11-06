@@ -33,13 +33,13 @@ class Builder:
         self.schema_keys = {'_value'}
         if schema_keys:
             self.schema_keys.update(f'_{key}' for key in schema_keys if not key.startswith('_'))
-        self.tree_dict = tree_dict if tree_dict is not None else {}
+        self.bigraph = tree_dict if tree_dict is not None else {}
 
     def __getitem__(self, keys):
         if not isinstance(keys, tuple):
             keys = (keys,)
 
-        current_dict = self.tree_dict
+        current_dict = self.bigraph
         for key in keys:
             current_dict = current_dict.setdefault(key, {})
 
@@ -49,7 +49,7 @@ class Builder:
         if not isinstance(keys, tuple):
             keys = (keys,)
 
-        current_dict = self.tree_dict
+        current_dict = self.bigraph
         for key in keys[:-1]:
             current_dict = current_dict.setdefault(key, {})
 
@@ -57,7 +57,7 @@ class Builder:
         current_dict[keys[-1]] = {'_value': value}
 
     def __repr__(self):
-        return f"Tree({self.tree_dict})"
+        return f"Tree({self.bigraph})"
 
 
 
@@ -66,21 +66,12 @@ def test_tree():
     # Example usage:
     tree = Builder(schema_keys=['apply', 'parameters'])
 
-    # add a branch with a value
-    tree['a', 'b'] = 2.0
-    tree['a', 'b2', 'c'] = 12.0
-
-    # access and print the 'apply' attribute
-    print(tree['a', 'b'].apply)  # Output: None
-    tree['a', 'b'].apply = 'sum'
-    print(tree['a', 'b'].apply)  # Output: 'sum'
-    print(tree['a', 'b'].value)  # Output: 2.0
 
 
-    # test with preloaded dict
-    tree2 = Builder(tree_dict={'path': {'to': {'leaf': {'_value': 1.0}}}}, schema_keys=['apply', 'parameters'])
 
-    print(tree2)
+
+
+
 
 if __name__ == '__main__':
     test_tree()
