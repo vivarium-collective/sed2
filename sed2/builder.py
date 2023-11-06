@@ -1,3 +1,15 @@
+import json
+import os
+import uuid
+import pprint
+from process_bigraph import Composite
+
+
+pretty = pprint.PrettyPrinter(indent=2)
+
+def pf(x):
+    """Format ``x`` for display."""
+    return pretty.pformat(x)
 
 
 
@@ -69,6 +81,143 @@ def test_tree():
 
 
 
+class SEDBuilder(Builder):
+    def __init__(self, tree_dict=None):
+        # Initialize with the specific schema keys for SED
+        super().__init__(
+            schema_keys=['annotations', ],
+            tree_dict=tree_dict)
+
+        self.models = {}
+        self.simulators = {}
+        self.current_step_id = None
+        self.previous_step_id = None
+
+    def start_step(self, step_id=None):
+        self.previous_step_id = self.current_step_id
+        self.current_step_id = step_id or str(uuid.uuid1())
+        self.bigraph[self.current_step_id] = {}
+
+    def check_init_step(self):
+        if not self.current_step_id:
+            self.start_step()
+
+    def add_model(
+            self,
+            model_id,
+            path,
+            language=None,
+            changes=None,
+    ):
+        # Ensure the model ID is unique
+        assert model_id not in self.models, f"Model '{model_id}' already exists."
+        # Add a model to the 'models' dictionary
+        self.models[model_id] = {
+            'path': path,
+            'language': f'urn:sedml:language:{language}'
+        }
+
+    def add_simulator(self, simulator_id, name, version, kisao_id):
+        # Ensure the simulator ID is unique
+        assert simulator_id not in self.simulators, f"Simulator '{simulator_id}' already exists."
+        # Add a simulator to the 'simulators' dictionary
+        self.simulators[simulator_id] = {
+            'name': name,
+            'version': version,
+            'kisao_id': f'KISAO:{kisao_id}'
+        }
+
+    def add_simulation(
+            self,
+            simulation_id,
+            simulator_id,
+            model_id,
+            start_time=None,
+            end_time=None,
+            number_of_points=None,
+            observables=None,  # TODO to capture all model variables, omit this or have a method to specify all.
+    ):
+        self.check_init_step()
+
+        # get the model
+        model = self.models[model_id]
+
+        # TODO -- kisao ID should set the config shape and ports
+        kisao_id = self.simulators[simulator_id]['kisao_id']
+
+        # simulator name
+        simulator_name = self.simulators[simulator_id]['name']
+
+        # build up the bigraph
+        self.bigraph[self.current_step_id][simulation_id] = {
+            '_type': 'step',
+            'address': f'local:{simulator_name}',  # TODO -- make protocol configurable
+            'config': {  # TODO -- this has to be the standardized config of a given simulator instance
+                'model': model,
+                'kisao_id': kisao_id,
+                'start_time': start_time,
+                'end_time': end_time,
+                'number_of_points': number_of_points,
+                'observables': observables,
+            },
+            '_depends_on': self.previous_step_id
+        }
+
+    def add_data_generator(
+            self,
+            data_id,
+            simulation_id=None,  # TODO
+            observables=None,
+            operations=None,
+    ):
+        self.check_init_step()
+
+        # build up the bigraph
+        self.bigraph[self.current_step_id][data_id] = {
+            '_type': 'step',
+            'address': f'local:{data_id}',
+            'config': {
+                'observables': observables,
+                'operations': operations,
+            },
+            '_depends_on': self.previous_step_id
+        }
+
+    def plot(
+            self,
+            plot_id,
+            plot_type=None,
+            title=None,
+            x_label=None,
+            y_label=None,
+            legend=None,
+    ):
+        self.check_init_step()
+
+        # build up the bigraph
+        self.bigraph[self.current_step_id][plot_id] = {
+            '_type': 'step',
+            'address': f'local:{plot_id}',
+            'config': {
+                'plot_type': plot_type,
+                'title': title,
+                'x_label': x_label,
+                'y_label': y_label,
+                'legend': legend,
+            },
+        }
+
+    def print(self):
+        print(pf(self.bigraph))
+
+    def save_file(self, filename=None, out_dir='out'):
+        composite_dict = self.bigraph
+        file_path = os.path.join(out_dir, filename)
+        with open(file_path, 'w') as file:
+            json.dump(composite_dict, file, indent=4)
+
+    def execute(self):
+        experiment = Composite({'state': self.bigraph})
 
 
 
