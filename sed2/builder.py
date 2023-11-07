@@ -186,7 +186,7 @@ class SEDBuilder(Builder):
                 'operations': operations,
             },
             'wires': {},  # TODO
-            '_depends_on': self.previous_step_id
+            '_depends_on': self.previous_step_id  # TODO -- can this be done entirely based on wires?
         }
 
     def add_visualization(

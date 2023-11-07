@@ -5,6 +5,7 @@ demos are according to this:
     - https://docs.google.com/document/d/1jZkaNhM_cOqMWtd4sJZ9b0VGXPTLsDKsRNI5Yvu4nOA/edit
 """
 from sed2.builder import SEDBuilder
+from bigraph_viz import plot_bigraph
 from demo_processes import process_registry  # this triggers the demo processes to register
 
 
@@ -194,6 +195,8 @@ def test19():
 
     # Execute the simulation experiment
     sed.execute()
+
+    plot_bigraph(sed.bigraph)
 
 
 if __name__ == '__main__':
