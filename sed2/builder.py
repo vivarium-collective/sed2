@@ -105,7 +105,7 @@ class SEDBuilder(Builder):
     def add_model(
             self,
             model_id,
-            path,
+            source,
             language=None,
             changes=None,
     ):
@@ -113,9 +113,12 @@ class SEDBuilder(Builder):
         assert model_id not in self.models, f"Model '{model_id}' already exists."
         # Add a model to the 'models' dictionary
         self.models[model_id] = {
-            'path': path,
+            'source': source,
             'language': f'urn:sedml:language:{language}'
         }
+
+    def add_dataset(self):
+        pass
 
     def add_simulator(self, simulator_id, name, version, kisao_id):
         # Ensure the simulator ID is unique
@@ -140,7 +143,7 @@ class SEDBuilder(Builder):
         self.check_init_step()
 
         # get the model
-        model = self.models[model_id]
+        model_source = self.models[model_id]['source']
 
         # TODO -- kisao ID should set the config shape and ports
         kisao_id = self.simulators[simulator_id]['kisao_id']
@@ -153,13 +156,14 @@ class SEDBuilder(Builder):
             '_type': 'step',
             'address': f'local:{simulator_name}',  # TODO -- make protocol configurable
             'config': {  # TODO -- this has to be the standardized config of a given simulator instance
-                'model': model,
+                'model_file': model_source,
                 'kisao_id': kisao_id,
                 'start_time': start_time,
                 'end_time': end_time,
                 'number_of_points': number_of_points,
                 'observables': observables,
             },
+            'wires': {},  # TODO -- add wires
             '_depends_on': self.previous_step_id
         }
 
@@ -169,21 +173,23 @@ class SEDBuilder(Builder):
             simulation_id=None,  # TODO
             observables=None,
             operations=None,
+            generator_id='data_operation',
     ):
         self.check_init_step()
 
         # build up the bigraph
         self.bigraph[self.current_step_id][data_id] = {
             '_type': 'step',
-            'address': f'local:{data_id}',
+            'address': f'local:{generator_id}',
             'config': {
                 'observables': observables,
                 'operations': operations,
             },
+            'wires': {},  # TODO
             '_depends_on': self.previous_step_id
         }
 
-    def plot(
+    def add_visualization(
             self,
             plot_id,
             plot_type=None,
@@ -197,24 +203,30 @@ class SEDBuilder(Builder):
         # build up the bigraph
         self.bigraph[self.current_step_id][plot_id] = {
             '_type': 'step',
-            'address': f'local:{plot_id}',
+            'address': f'local:{plot_type}',
             'config': {
-                'plot_type': plot_type,
+                # 'plot_type': plot_type,
                 'title': title,
                 'x_label': x_label,
                 'y_label': y_label,
                 'legend': legend,
             },
+            'wires': {},  # TODO
+            '_depends_on': self.previous_step_id
         }
 
-    def print(self):
+    def print_sed_doc(self):
         print(pf(self.bigraph))
 
-    def save_file(self, filename=None, out_dir='out'):
+    def save_sed_doc(self, filename=None, out_dir='out'):
         composite_dict = self.bigraph
         file_path = os.path.join(out_dir, filename)
         with open(file_path, 'w') as file:
             json.dump(composite_dict, file, indent=4)
+
+    def save_archive(self):
+        """save all the models and metadata in an archive"""
+        pass
 
     def execute(self):
         experiment = Composite({'state': self.bigraph})

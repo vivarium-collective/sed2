@@ -3,35 +3,21 @@ import matplotlib.pyplot as plt
 import pickle
 
 
-# # serializers
-# def to_pickle(value, bindings=None, types=None):
-#     filepath = 'plot.pkl'
-#     # Save the value using pickle
-#     with open(filepath, 'wb') as file:
-#         pickle.dump(value, file)
-#     return filepath
-#
-# # deserializers
-# def from_pickle(serialized, bindings=None, types=None):
-#     value = pickle.load(serialized)
-#     return value
-#
-# types.serialize_registry.register('to_pickle', to_pickle)
-# types.deserialize_registry.register('from_pickle', from_pickle)
-#
-# # types
-# demo_type_library = {
-#     # abstract number type
-#     'figure': {
-#         '_type': 'figure',
-#         '_apply': 'set',
-#         '_serialize': 'to_pickle',
-#         '_deserialize': 'from_pickle',
-#         '_description': 'matplotlib figure'
-#     },
-# }
-#
-# types.type_registry.register_multiple(demo_type_library)
+class DataOperation(Step):
+    config_schema = {
+        'observables': 'dict',
+        'operations': 'dict',
+    }
+
+    def __init__(self, config=None):
+        super().__init__(config)
+
+    def schema(self):
+        return {}
+
+    def update(self, inputs):
+        return {}
+
 
 
 class Plot2D(Step):
@@ -69,5 +55,3 @@ class Plot2D(Step):
         return {
             'figure_path': figure_path
         }
-
-process_registry.register('plot2D', Plot2D)
