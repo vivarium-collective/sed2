@@ -1,7 +1,5 @@
 import pprint
 
-from sed2.sedbuilder import SEDBuilder
-
 pretty = pprint.PrettyPrinter(indent=2)
 
 
@@ -51,7 +49,7 @@ class Node:
                 raise AttributeError(f"{key} is not a valid attribute or schema key.")
 
     def __repr__(self):
-        return f"Node({self._data})"
+        return f"{pf(self._data)}"
 
     def add_process(
             self,
@@ -77,7 +75,7 @@ class Builder:
         self._bigraph = bigraph_dict or {}
 
     def __repr__(self):
-        return f"{self._bigraph}"
+        return f"{pf(self._bigraph)}"
 
     def __getitem__(self, keys):
         if not isinstance(keys, tuple):
@@ -108,7 +106,8 @@ class Builder:
             config=None,
             wires=None
     ):
-        # Add the process with the given ID and attributes
+        type = type or 'step'
+        # Add the process with the given ID and attributes at the top level
         self._bigraph[process_id] = make_process_config(type, address, config, wires)
 
     def update_tree(self, path, data):
@@ -135,11 +134,9 @@ def test_tree():
     print(tree['a', 'b'].apply)  # Output: 'sum'
     print(tree['a', 'b'].value)  # Output: 2.0
 
-    # add a process
-
+    # add processes
     tree['a', 'b2'].add_process(process_id='p1')
-    tree.add_process()
-
+    tree.add_process(process_id='top_process')
 
     # test with preloaded dict
     tree2 = Builder(bigraph_dict={'path': {'to': {'leaf': {'_value': 1.0}}}}, schema_keys=['apply', 'parameters'])
