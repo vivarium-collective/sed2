@@ -33,7 +33,12 @@ def test_builder():
     # make the first step
     sed.add_task(task_id='1')
 
-
+    # add a simulation
+    sed['1'].add_simulation(
+        simulation_id='sim1',
+        simulator_id='simulator1',
+        model_id='model1',
+    )
 
 
 

@@ -7,26 +7,30 @@ from process_bigraph import Composite
 
 pretty = pprint.PrettyPrinter(indent=2)
 
+
 def pf(x):
     """Format ``x`` for display."""
     return pretty.pformat(x)
 
 
-
 class Node:
-    def __init__(self, data, schema_keys):
+    """
+    Provides attribute-style access to the data within a tree
+    """
+    def __init__(self, data, schema_keys, path, builder):
         self._data = data
         self._schema_keys = schema_keys
+        self._path = path  # Store the current path
+        self._builder = builder  # Reference to the builder instance
 
     def __getattr__(self, item):
-        # Special handling for schema keys
         schema_key = f'_{item}'
         if schema_key in self._schema_keys:
             return self._data.get(schema_key)
         raise AttributeError(f"{item} is not a valid attribute or schema key.")
 
     def __setattr__(self, key, value):
-        if key in ['_data', '_schema_keys']:
+        if key in ['_data', '_schema_keys', '_path', '_builder']:
             super().__setattr__(key, value)
         else:
             schema_key = f'_{key}'
@@ -38,14 +42,26 @@ class Node:
     def __repr__(self):
         return f"Node({self._data})"
 
+    def add_process(self, process_id, process_type=None, address=None, config=None):
+        # Add the process with the given ID and attributes
+        self._data[process_id] = {
+            '_type': process_type or 'step',
+            'address': address,
+            'config': config,
+            'wires': {},
+        }
+
+        # Update the builder's tree_dict
+        self._builder.update_tree(self._path, self._data)
+
 
 class Builder:
     schema_keys = {'_value'}
 
-    def __init__(self, schema_keys=None, tree_dict=None):
+    def __init__(self, schema_keys=None, bigraph_dict=None):
         if schema_keys:
             self.schema_keys.update(f'_{key}' for key in schema_keys if not key.startswith('_'))
-        self.bigraph = tree_dict or {}
+        self.bigraph = bigraph_dict or {}
 
     def __getitem__(self, keys):
         if not isinstance(keys, tuple):
@@ -55,7 +71,7 @@ class Builder:
         for key in keys:
             current_dict = current_dict.setdefault(key, {})
 
-        return Node(current_dict, self.schema_keys)
+        return Node(current_dict, self.schema_keys, keys, self)
 
     def __setitem__(self, keys, value):
         if not isinstance(keys, tuple):
@@ -68,23 +84,23 @@ class Builder:
         # Assign the value to the '_value' key
         current_dict[keys[-1]] = {'_value': value}
 
+    def update_tree(self, path, data):
+        # Navigate to the correct location in the tree and update the data
+        current_dict = self.bigraph
+        for key in path[:-1]:
+            current_dict = current_dict.setdefault(key, {})
+        current_dict[path[-1]] = data
+
     def __repr__(self):
-        return f"Tree({self.bigraph})"
-
-    def add_process(self):
-        pass
-
-    def add_store(self):
-        pass
-
+        return f"Bigraph({self.bigraph})"
 
 
 class SEDBuilder(Builder):
-    def __init__(self, tree_dict=None):
+    def __init__(self, bigraph_dict=None):
         # Initialize with the specific schema keys for SED
         super().__init__(
             schema_keys=['annotations', ],
-            tree_dict=tree_dict)
+            bigraph_dict=bigraph_dict)
 
         self.models = {}
         self.simulators = {}
@@ -93,14 +109,7 @@ class SEDBuilder(Builder):
         task_id = task_id or str(uuid.uuid1())
 
         # TODO -- make do this part entirely with Builder API. add_process
-        self.add_process()
-        # self.bigraph[step_id] = {
-        #     '_type': 'step',
-        #     # 'address': None,  # TODO -- this should not be needed, since this is a composite
-        #     'config': {},
-        #     'wires': {},
-        #     # '_depends_on': self.previous_step_id
-        # }
+        # self.add_process()
 
     def add_resource(self):
         pass
@@ -225,15 +234,34 @@ class SEDBuilder(Builder):
         """save all the models and metadata in an archive"""
         pass
 
-    def execute(self):
-        experiment = Composite({'state': self.bigraph})
-
-
 
 
 def test_tree():
     # Example usage:
     tree = Builder(schema_keys=['apply', 'parameters'])
+
+    tree = Builder(schema_keys=['apply', 'parameters'])
+
+    # add a branch with a value
+    tree['a', 'b'] = 2.0
+    tree['a', 'b2', 'c'] = 12.0
+
+    # access and print the 'apply' attribute
+    print(tree['a', 'b'].apply)  # Output: None
+    tree['a', 'b'].apply = 'sum'
+    print(tree['a', 'b'].apply)  # Output: 'sum'
+    print(tree['a', 'b'].value)  # Output: 2.0
+
+    # add a process
+
+    tree['a', 'b2'].add_process(process_id='p1')
+    tree
+
+
+    # test with preloaded dict
+    tree2 = Builder(bigraph_dict={'path': {'to': {'leaf': {'_value': 1.0}}}}, schema_keys=['apply', 'parameters'])
+
+
 
 
 def test_sedbuilder():
