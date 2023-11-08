@@ -40,12 +40,12 @@ class Node:
 
 
 class Builder:
+    schema_keys = {'_value'}
+
     def __init__(self, schema_keys=None, tree_dict=None):
-        # Ensure that '_value' is always a part of the schema
-        self.schema_keys = {'_value'}
         if schema_keys:
             self.schema_keys.update(f'_{key}' for key in schema_keys if not key.startswith('_'))
-        self.bigraph = tree_dict if tree_dict is not None else {}
+        self.bigraph = tree_dict or {}
 
     def __getitem__(self, keys):
         if not isinstance(keys, tuple):
@@ -71,13 +71,11 @@ class Builder:
     def __repr__(self):
         return f"Tree({self.bigraph})"
 
+    def add_process(self):
+        pass
 
-
-def test_tree():
-
-    # Example usage:
-    tree = Builder(schema_keys=['apply', 'parameters'])
-
+    def add_store(self):
+        pass
 
 
 
@@ -90,17 +88,22 @@ class SEDBuilder(Builder):
 
         self.models = {}
         self.simulators = {}
-        self.current_step_id = None
-        self.previous_step_id = None
 
-    def start_step(self, step_id=None):
-        self.previous_step_id = self.current_step_id
-        self.current_step_id = step_id or str(uuid.uuid1())
-        self.bigraph[self.current_step_id] = {}
+    def add_task(self, task_id=None):
+        task_id = task_id or str(uuid.uuid1())
 
-    def check_init_step(self):
-        if not self.current_step_id:
-            self.start_step()
+        # TODO -- make do this part entirely with Builder API. add_process
+        self.add_process()
+        # self.bigraph[step_id] = {
+        #     '_type': 'step',
+        #     # 'address': None,  # TODO -- this should not be needed, since this is a composite
+        #     'config': {},
+        #     'wires': {},
+        #     # '_depends_on': self.previous_step_id
+        # }
+
+    def add_resource(self):
+        pass
 
     def add_model(
             self,
@@ -140,8 +143,6 @@ class SEDBuilder(Builder):
             number_of_points=None,
             observables=None,  # TODO to capture all model variables, omit this or have a method to specify all.
     ):
-        self.check_init_step()
-
         # get the model
         model_source = self.models[model_id]['source']
 
@@ -158,13 +159,13 @@ class SEDBuilder(Builder):
             'config': {  # TODO -- this has to be the standardized config of a given simulator instance
                 'model_file': model_source,
                 'kisao_id': kisao_id,
-                'start_time': start_time,
-                'end_time': end_time,
-                'number_of_points': number_of_points,
+                # 'start_time': start_time,
+                # 'end_time': end_time,
+                # 'number_of_points': number_of_points,
                 'observables': observables,
             },
             'wires': {},  # TODO -- add wires
-            '_depends_on': self.previous_step_id
+            # '_depends_on': self.previous_step_id
         }
 
     def add_data_generator(
@@ -175,8 +176,6 @@ class SEDBuilder(Builder):
             operations=None,
             generator_id='data_operation',
     ):
-        self.check_init_step()
-
         # build up the bigraph
         self.bigraph[self.current_step_id][data_id] = {
             '_type': 'step',
@@ -186,7 +185,7 @@ class SEDBuilder(Builder):
                 'operations': operations,
             },
             'wires': {},  # TODO
-            '_depends_on': self.previous_step_id  # TODO -- can this be done entirely based on wires?
+            # '_depends_on': self.previous_step_id  # TODO -- can this be done entirely based on wires?
         }
 
     def add_visualization(
@@ -198,8 +197,6 @@ class SEDBuilder(Builder):
             y_label=None,
             legend=None,
     ):
-        self.check_init_step()
-
         # build up the bigraph
         self.bigraph[self.current_step_id][plot_id] = {
             '_type': 'step',
@@ -212,7 +209,7 @@ class SEDBuilder(Builder):
                 'legend': legend,
             },
             'wires': {},  # TODO
-            '_depends_on': self.previous_step_id
+            # '_depends_on': self.previous_step_id
         }
 
     def print_sed_doc(self):
@@ -232,6 +229,16 @@ class SEDBuilder(Builder):
         experiment = Composite({'state': self.bigraph})
 
 
+
+
+def test_tree():
+    # Example usage:
+    tree = Builder(schema_keys=['apply', 'parameters'])
+
+
+def test_sedbuilder():
+    sed = SEDBuilder()
+    sed
 
 
 if __name__ == '__main__':
