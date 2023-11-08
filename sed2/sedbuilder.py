@@ -1,7 +1,7 @@
 import json
 import os
 
-from sed2.builder import pf, Builder, Node
+from sed2.builder import pf, Builder
 
 
 
@@ -9,9 +9,7 @@ class SEDBuilder(Builder):
     def __init__(self, bigraph_dict=None):
         # Initialize with the specific schema keys for SED
         super().__init__(
-            schema_keys=['annotations', ],
             bigraph_dict=bigraph_dict,
-            node_class=SEDNode,
         )
 
         self.models = {}
