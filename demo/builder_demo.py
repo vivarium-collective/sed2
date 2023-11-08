@@ -17,15 +17,15 @@ def test_builder():
 
     # Load an SBML model
     sed.add_model(
-        model_id='model1',
-        source='demo_processes/BIOMD0000000061_url.xml',  # TODO -- this should also move the file into an archive
-        language='sbml',
+        name='model1',
+        type='sbml',
+        source='demo_processes/BIOMD0000000061_url.xml',  # TODO -- this should move the file into an archive
     )
 
     # Set up the simulator
     sed.add_simulator(
-        simulator_id='simulator1',
-        name='tellurium',
+        name='simulator1',
+        simulator='tellurium',
         version='',
         kisao_id='0000029',  # Gillespie direct algorithm
     )
