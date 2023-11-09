@@ -75,7 +75,7 @@ def test_builder():
 
     b.add_process(process_id='process1')
     b['path', 'to'].add_process(process_id='p1', type='example_type')
-    b['path']
+    print(b['path'])
 
 
 if __name__ == '__main__':
