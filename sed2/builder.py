@@ -1,3 +1,9 @@
+"""
+Builder
+================
+"""
+
+from bigraph_schema.type_system import TypeSystem
 import pprint
 
 pretty = pprint.PrettyPrinter(indent=2)
@@ -7,35 +13,40 @@ def pf(x):
     return pretty.pformat(x)
 
 
-def make_process_config(
-        type=None,
-        address=None,
-        config=None,
-        wires=None
-):
-    return {
-        '_type': type,
-        'address': address,
-        'config': config,
-        'wires': wires or {},
-    }
-
-
 class Node(dict):
-    def add_process(self, process_id, **kwargs):
-        self[process_id] = make_process_config(**kwargs)
+    def add_process(
+            self,
+            process_id,
+            process_type=None,
+            address=None,
+            config=None,
+            inputs=None,
+            outputs=None,
+    ):
+        self[process_id] = {
+            '_type': process_type or 'process',
+            'address': address or '',
+            'config': config or {},
+            'wires': {
+                'inputs': inputs or {},
+                'outputs': outputs or {},
+            },
+        }
 
 
-class Builder:
-    def __init__(self, bigraph_dict=None):
-        self.bigraph_dict = bigraph_dict or {}
+class Builder(Node):
+
+    def __init__(self, tree_dict=None):
+        super().__init__()
+        self.tree_dict = tree_dict or {}
+        self.processes = {}  # TODO retrieve this from tree_dict?
 
     def __setitem__(self, keys, value):
         # Convert single key to tuple
         keys = (keys,) if isinstance(keys, str) else keys
 
         # Navigate through the keys, creating nested dictionaries as needed
-        d = self.bigraph_dict
+        d = self.tree_dict
         for key in keys[:-1]:  # iterate over keys to create the nested structure
             if key not in d:
                 d[key] = Node()
@@ -46,24 +57,21 @@ class Builder:
         # Convert single key to tuple
         keys = (keys,) if isinstance(keys, str) else keys
 
-        d = self.bigraph_dict
+        d = self.tree_dict
         for key in keys:
             d = d[key]  # move deeper into the dictionary
         return d
 
     def __repr__(self):
-        return f"{pf(self.bigraph_dict)}"
+        return f"{pf(self.tree_dict)}"
 
-    def add_process(self, process_id, **kwargs):
-        # Add the process with the given ID and attributes
-        self.bigraph_dict[process_id] = make_process_config(**kwargs)
 
 
 def test_builder():
     # Testing the Builder class
     b = Builder()
     b['path', 'to', 'node'] = 1.0
-    print(b.bigraph_dict)
+    print(b.tree_dict)
 
     # Accessing the value
     value = b['path', 'to', 'node']
@@ -72,11 +80,46 @@ def test_builder():
     b['path', 'b2', 'c'] = 12.0
     print(b)
 
-
     b.add_process(process_id='process1')
-    b['path', 'to'].add_process(process_id='p1', type='example_type')
+    b['path', 'to'].add_process(process_id='p1', process_type='example_type')
     print(b['path'])
 
 
+    # print(b.state)  # this should be the state hierarchy
+    print(b.processes)  # This should be the process registry
+    print(b['path', 'b2', 'c'].type)  # access schema keys
+
+    b['path', 'to', 'p1'].connect(port_id='', target=['path', '1'])  # connect port, with checking
+
+    b.check()  # check if everything is connected
+    b.infer()  # fill in missing content
+    b.graph()  # bigraph-viz
+
+
+
+def test_builder_demo():
+
+    sed_schema = {
+        'models': {},
+        'algorithms': {},
+        'visualizations': {},
+        'tasks': {},
+    }
+    a = Builder(sed_schema)
+
+    # or
+    b = Builder()
+    b['models'] = {}
+    b['algorithms'] = {}
+    b['visualizations'] = {}
+    b['tasks'] = {}
+
+    b.add_process(process_id='p1', address='', config={}, inputs={}, outputs={})
+
+
+
+
+
 if __name__ == '__main__':
-    test_builder()
+    # test_builder()
+    test_builder_demo()

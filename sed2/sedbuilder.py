@@ -4,12 +4,11 @@ import os
 from sed2.builder import pf, Builder
 
 
-
 class SEDBuilder(Builder):
-    def __init__(self, bigraph_dict=None):
+    def __init__(self, tree_dict=None):
         # Initialize with the specific schema keys for SED
         super().__init__(
-            bigraph_dict=bigraph_dict,
+            tree_dict=tree_dict,
         )
 
         self.models = {}
@@ -99,10 +98,10 @@ class SEDBuilder(Builder):
         pass
 
     def print_sed_doc(self):
-        print(pf(self._bigraph))
+        print(pf(self.tree_dict))
 
     def save_sed_doc(self, filename=None, out_dir='out'):
-        composite_dict = self._bigraph
+        composite_dict = self.tree_dict
         file_path = os.path.join(out_dir, filename)
         with open(file_path, 'w') as file:
             json.dump(composite_dict, file, indent=4)
