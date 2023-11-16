@@ -1,9 +1,8 @@
 """
 Builder
-================
+=======
 """
 
-from bigraph_schema.type_system import TypeSystem
 import pprint
 
 pretty = pprint.PrettyPrinter(indent=2)
@@ -32,13 +31,14 @@ class Node(dict):
                 'outputs': outputs or {},
             },
         }
+        return self
 
 
 class Builder(Node):
 
-    def __init__(self, tree_dict=None):
+    def __init__(self, tree=None):
         super().__init__()
-        self.tree_dict = tree_dict or {}
+        self.tree = tree or {}
         self.processes = {}  # TODO retrieve this from tree_dict?
 
     def __setitem__(self, keys, value):
@@ -46,7 +46,7 @@ class Builder(Node):
         keys = (keys,) if isinstance(keys, str) else keys
 
         # Navigate through the keys, creating nested dictionaries as needed
-        d = self.tree_dict
+        d = self.tree
         for key in keys[:-1]:  # iterate over keys to create the nested structure
             if key not in d:
                 d[key] = Node()
@@ -57,13 +57,13 @@ class Builder(Node):
         # Convert single key to tuple
         keys = (keys,) if isinstance(keys, str) else keys
 
-        d = self.tree_dict
+        d = self.tree
         for key in keys:
             d = d[key]  # move deeper into the dictionary
         return d
 
     def __repr__(self):
-        return f"{pf(self.tree_dict)}"
+        return f"{pf(self.tree)}"
 
 
 
@@ -71,7 +71,7 @@ def test_builder():
     # Testing the Builder class
     b = Builder()
     b['path', 'to', 'node'] = 1.0
-    print(b.tree_dict)
+    print(b.tree)
 
     # Accessing the value
     value = b['path', 'to', 'node']

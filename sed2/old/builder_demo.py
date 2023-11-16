@@ -4,9 +4,7 @@ SED2 builder
 demos are according to this:
     - https://docs.google.com/document/d/1jZkaNhM_cOqMWtd4sJZ9b0VGXPTLsDKsRNI5Yvu4nOA/edit
 """
-from sed2.sedbuilder import SEDBuilder
-from demo_processes import process_registry  # this triggers the demo processes to register
-
+from sed2.old.sedbuilder import SEDBuilder
 
 MODEL_PATH = 'demo_processes/Caravagna2010.xml'
 
@@ -42,6 +40,8 @@ def test_builder():
 
 
 def test_sed1():
+
+
     # Initialize the SEDBuilder with some ontologies
     demo_workflow = SEDBuilder(ontologies=['KISAO', 'sbml', 'biomodels'])
 
