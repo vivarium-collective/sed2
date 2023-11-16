@@ -3,10 +3,10 @@ import json
 class SEDBuilder(Builder):
     def __init__(self, ontologies, tree=None):
         super().__init__(tree)
-        self["ontologies"] = ontologies
-        self["models"] = Node()
-        self["simulators"] = Node()
-        self["tasks"] = Node()
+        self['ontologies'] = ontologies
+        self['models'] = Node()
+        self['simulators'] = Node()
+        self['tasks'] = Node()
 
     def add_model(self, model_id, source):
         self["models"][model_id] = {
@@ -26,6 +26,38 @@ class SEDBuilder(Builder):
 
 
 def test_builder():
+    # Initialize the SEDBuilder
+    demo_workflow = SEDBuilder(ontologies=['KISAO', 'sbml', 'biomodels'])
+
+    # Add a model
+    demo_workflow.add_model('example_model', 'path/to/model/file')
+
+    # Add a simulator
+    demo_workflow.add_simulator('example_simulator', 'KISAO:example_algorithm')
+
+    # Create a task and add a simulation to it
+    demo_workflow.add_task('example_simulation_task', inputs=[], outputs=[])
+
+    # Define simulation parameters
+    start_time = 0
+    end_time = 100
+    number_of_points = 1000
+    demo_workflow[ 'example_simulation_task'].add_simulation(
+        'example_simulation',
+        simulator_id='example_simulator',
+        model_id='example_model',
+        start_time=start_time,
+        end_time=end_time,
+        number_of_points=number_of_points,
+        observables=[]  # Define observables as needed
+    )
+    demo_workflow.to_json('sed2demo1')
+
+    demo_workflow
+
+
+
+    # 2
     demo_workflow = SEDBuilder(ontologies=['KISAO', 'sbml', 'biomodels'])
     demo_workflow.add_model('model1', 'biomodels:BIOMD0000000246')
     demo_workflow.add_simulator('simulator1', 'KISAO:CVODE')
@@ -45,22 +77,7 @@ def test_builder():
                                                                       number_of_points=1000,
                                                                       observables=['observable1', 'observable2'])
 
-
-
-
-    # # 2
-
-    #
-    # # Task paths are tuples indicating where to place the tasks
-    # demo_workflow.add_task('initial_simulation', inputs=[], outputs=[])
-    # demo_workflow.add_task('modify_model', inputs=[], outputs=[])
-    #
-    # demo_workflow.add_simulation( 'initial_run', 'simulator1', 'model1', 0, 100,
-    #                              1000, ['observable1', 'observable2'])
-    # demo_workflow.add_simulation(('tasks', 'modify_model'), 'second_run', 'simulator1', 'model2', 0, 100, 1000,
-    #                              ['observable1', 'observable2'])
-
-    demo_workflow.to_json('sed2demo')
+    demo_workflow.to_json('sed2demo2')
 
 
 

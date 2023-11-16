@@ -74,7 +74,6 @@ class Builder(Node):
     def __init__(self, tree=None):
         super().__init__()
         self.tree = tree or {}
-        self.processes = {}  # TODO retrieve this from tree_dict?
 
     def __setitem__(self, keys, value):
         # Convert single key to tuple
@@ -98,7 +97,7 @@ class Builder(Node):
         return d
 
     def __repr__(self):
-        return f"{pf(self.tree)}"
+        return f"{pf(self.tree[self.top_path])}"
 
 
 
