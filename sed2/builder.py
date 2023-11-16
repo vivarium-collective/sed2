@@ -33,6 +33,41 @@ class Node(dict):
         }
         return self
 
+    def add_task(
+            self,
+            task_id,
+            inputs=None,
+            outputs=None
+    ):
+        self[task_id] = Node({
+            '_type': 'task',
+            'inputs': inputs or {},
+            'outputs': outputs or {},
+        })
+        return self[task_id]  # Return the new task node
+
+    def add_simulation(
+            self,
+            simulation_id,
+            simulator_id=None,
+            model_id=None,
+            start_time=None,
+            end_time=None,
+            number_of_points=None,
+            observables=None
+    ):
+        self[simulation_id] = Node({
+            '_type': 'simulation',
+            'config': {
+                'simulator_id': simulator_id,
+                'model_id': model_id,
+                'start_time': start_time,
+                'end_time': end_time,
+                'number_of_points': number_of_points,
+                'observables': observables
+            }
+        })
+        return self[simulation_id]  # Return the new simulation node
 
 class Builder(Node):
 
