@@ -41,8 +41,54 @@ def test_builder():
     )
 
 
+def test_sed1():
+    # Initialize the SEDBuilder with some ontologies
+    demo_workflow = SEDBuilder(ontologies=['KISAO', 'sbml', 'biomodels'])
+
+    # Load an SBML model
+    demo_workflow.add_model(
+        model_id='model1',
+        source='biomodels:BIOMD0000000246',
+    )
+
+    # Set up the simulator
+    demo_workflow.add_simulator(
+        simulator_id='simulator1',
+        type='KISAO:CVODE',
+    )
+
+    # Create two tasks
+    demo_workflow.add_task(task_id='initial_simulation', inputs=[], outputs=[])
+    demo_workflow.add_task(task_id='modify_model', inputs=[], outputs=[])
+
+    # Task 1
+    ## Add the first simulation
+    demo_workflow['initial_simulation'].add_simulation(
+        simulation_id='initial_run', simulator_id='simulator1', model_id='model1',
+        start_time=0, end_time=100, number_of_points=1000,
+        outputs=['observable1', 'observable2'],
+    )
+
+    # Task 2
+    ## change model
+    demo_workflow.add_model(model_id='model2', source='model1', changes={'param1': 2.0})
+
+    ## run second simulation
+    demo_workflow['modify_model'].add_simulation(
+        simulation_id='second_run', simulator_id='simulator1', model_id='model2',
+        start_time=0, end_time=100, number_of_points=1000,
+        outputs=['observable1', 'observable2'],
+    )
+
+    # verify
+    demo_workflow.verify()
+
+    # save
+    demo_workflow.to_json(filename='sed2demo')
+    demo_workflow.to_archive()
 
 
 
 if __name__ == '__main__':
-    test_builder()
+    # test_builder()
+    test_sed1()

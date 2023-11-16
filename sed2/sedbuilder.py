@@ -4,15 +4,55 @@ import os
 from sed2.builder import pf, Builder
 
 
+class Ontology(dict):
+    """
+    This provides an API to an ontology object.
+    Import ontology can look these up by name
+    """
+
+    def synonyms(self):
+        return {}
+
+class OntologyRegistry():
+
+    def __init__(self):
+        self.registry = {}
+
+    def register(self, key, item):
+        self.registry[key] = item
+
+    def access(self, key):
+        return self.registry[key]
+
+
+# create the ontology registry
+ontology_registry = OntologyRegistry()
+ontology_registry.register('KISAO', {})
+
+
 class SEDBuilder(Builder):
-    def __init__(self, tree_dict=None):
+
+    def __init__(self, ontologies=None):
         # Initialize with the specific schema keys for SED
         super().__init__(
-            tree_dict=tree_dict,
+            tree_dict={
+                'models': {},
+                'algorithms': {},
+                'visualizations': {},
+                'tasks': {},
+            }
         )
+        self.models = self['models']
+        self.algorithms = self['algorithms']
+        self.visualizations = self['visualizations']
+        self.tasks = self['tasks']
 
-        self.models = {}
-        self.simulators = {}
+        # load ontologies
+        self.ontologies = ontologies
+        for ontology in self.ontologies:
+            assert ontology_registry.access(ontology)
+
+
 
     def add_model(
             self,

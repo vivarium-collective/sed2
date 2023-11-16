@@ -87,13 +87,13 @@ def test_builder():
 
     # print(b.state)  # this should be the state hierarchy
     print(b.processes)  # This should be the process registry
-    print(b['path', 'b2', 'c'].type)  # access schema keys
-
-    b['path', 'to', 'p1'].connect(port_id='', target=['path', '1'])  # connect port, with checking
-
-    b.check()  # check if everything is connected
-    b.infer()  # fill in missing content
-    b.graph()  # bigraph-viz
+    # print(b['path', 'b2', 'c'].type)  # access schema keys
+    #
+    # b['path', 'to', 'p1'].connect(port_id='', target=['path', '1'])  # connect port, with checking
+    #
+    # b.check()  # check if everything is connected
+    # b.infer()  # fill in missing content
+    # b.graph()  # bigraph-viz
 
 
 
@@ -115,6 +115,9 @@ def test_builder_demo():
     b['tasks'] = {}
 
     b.add_process(process_id='p1', address='', config={}, inputs={}, outputs={})
+
+
+    b
 
 
 
