@@ -15,14 +15,14 @@ def pf(x):
 class Node(dict):
     def add_process(
             self,
-            process_id,
+            name,
             process_type=None,
             address=None,
             config=None,
             inputs=None,
             outputs=None,
     ):
-        self[process_id] = {
+        self[name] = {
             '_type': process_type or 'process',
             'address': address or '',
             'config': config or {},
@@ -31,32 +31,33 @@ class Node(dict):
                 'outputs': outputs or {},
             },
         }
-        return self
+        return self[name]
 
     def add_task(
             self,
-            task_id,
+            name,
             inputs=None,
             outputs=None
     ):
-        self[task_id] = Node({
+        self[name] = Node({
             '_type': 'task',
             'inputs': inputs or {},
             'outputs': outputs or {},
         })
-        return self[task_id]  # Return the new task node
+        return self[name]  # Return the new task node
 
     def add_simulation(
             self,
-            simulation_id,
+            name,
             simulator_id=None,
             model_id=None,
             start_time=None,
             end_time=None,
             number_of_points=None,
-            observables=None
+            inputs=None,
+            outputs=None
     ):
-        self[simulation_id] = Node({
+        self[name] = Node({
             '_type': 'simulation',
             'config': {
                 'simulator_id': simulator_id,
@@ -64,10 +65,35 @@ class Node(dict):
                 'start_time': start_time,
                 'end_time': end_time,
                 'number_of_points': number_of_points,
-                'observables': observables
+            },
+            'wires': {
+                'inputs': inputs,
+                'outputs': outputs,
             }
         })
-        return self[simulation_id]  # Return the new simulation node
+        return self[name]  # Return the new simulation node
+
+    def add_data_generator(self, name, inputs=None, outputs=None, **kwargs):
+        self[name] = Node({
+            '_type': 'data_generator',
+            'config': dict(kwargs),
+            'wires': {
+                'inputs': inputs,
+                'outputs': outputs,
+            }
+        })
+        return self[name]  # Return the new node
+
+    def add_visualization(self, name, inputs=None, outputs=None, **kwargs):
+        self[name] = Node({
+            '_type': 'visualization',
+            'config': dict(kwargs),
+            'wires': {
+                'inputs': inputs,
+                'outputs': outputs,
+            }
+        })
+        return self[name]  # Return the new node
 
 class Builder(Node):
 
@@ -97,7 +123,7 @@ class Builder(Node):
         return d
 
     def __repr__(self):
-        return f"{pf(self.tree[self.top_path])}"
+        return f"{pf(self.tree)}"
 
 
 
@@ -119,17 +145,6 @@ def test_builder():
     print(b['path'])
 
 
-    # print(b.state)  # this should be the state hierarchy
-    print(b.processes)  # This should be the process registry
-    # print(b['path', 'b2', 'c'].type)  # access schema keys
-    #
-    # b['path', 'to', 'p1'].connect(port_id='', target=['path', '1'])  # connect port, with checking
-    #
-    # b.check()  # check if everything is connected
-    # b.infer()  # fill in missing content
-    # b.graph()  # bigraph-viz
-
-
 
 def test_builder_demo():
 
@@ -149,11 +164,7 @@ def test_builder_demo():
     b['tasks'] = {}
 
     b.add_process(process_id='p1', address='', config={}, inputs={}, outputs={})
-
-
     b
-
-
 
 
 

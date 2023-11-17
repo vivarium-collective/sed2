@@ -8,76 +8,78 @@ class SEDBuilder(Builder):
         self['simulators'] = Node()
         self['tasks'] = Node()
 
-    def add_model(self, model_id, source):
-        self["models"][model_id] = {
-            "id": model_id,
-            "source": source
+    def add_model(
+            self, 
+            model_id, 
+            source,  # this should support paths, urls, local
+            changes=None,
+    ):
+        self['models'][model_id] = {
+            'id': model_id,
+            'source': source,
+            'changes': changes,  # apply these changes?
         }
 
     def add_simulator(self, simulator_id, type):
-        self["simulators"][simulator_id] = {
-            "id": simulator_id,
-            "_type": type
+        self['simulators'][simulator_id] = {
+            'id': simulator_id,
+            '_type': type
         }
 
     def to_json(self, filename):
         with open(f'{filename}.json', 'w') as file:
             json.dump(self.tree, file, indent=4)
 
+    def to_archive(self, name):
+        pass
 
 def test_builder():
-    # Initialize the SEDBuilder
-    demo_workflow = SEDBuilder(ontologies=['KISAO', 'sbml', 'biomodels'])
+    # Initialize the SEDBuilder with relevant ontologies
+    simulation_workflow = SEDBuilder(ontologies=['KISAO', 'sbml', 'biomodels'])
 
-    # Add a model
-    demo_workflow.add_model('example_model', 'path/to/model/file')
+    # Add a biological model, specifying its source (e.g., a BioModels database entry)
+    simulation_workflow.add_model(
+        model_id='biological_system_model',
+        source='biomodels:MODEL12345'  # Replace with actual BioModels ID or file path
+    )
 
-    # Add a simulator
-    demo_workflow.add_simulator('example_simulator', 'KISAO:example_algorithm')
+    # Add a numerical simulator, specifying the algorithm (e.g., an ODE solver from KISAO)
+    simulation_workflow.add_simulator(
+        simulator_id='ode_solver',
+        type='KISAO:0000019'  # Replace with actual KiSAO ID for the solver
+    )
 
-    # Create a task and add a simulation to it
-    demo_workflow.add_task('example_simulation_task', inputs=[], outputs=[])
+    # Create a simulation task, representing a specific experiment or analysis
+    simulation_workflow.add_task(
+        task_id='cellular_response_simulation',
+        inputs=[],  # Define inputs if any
+        outputs=[]  # Define outputs if any
+    )
 
-    # Define simulation parameters
+    # Define simulation parameters: start time, end time, number of points
     start_time = 0
     end_time = 100
     number_of_points = 1000
-    demo_workflow[ 'example_simulation_task'].add_simulation(
-        'example_simulation',
-        simulator_id='example_simulator',
-        model_id='example_model',
+    simulation_workflow['cellular_response_simulation'].add_simulation(
+        'time_course_analysis',
+        simulator_id='ode_solver',
+        model_id='biological_system_model',
         start_time=start_time,
         end_time=end_time,
         number_of_points=number_of_points,
-        observables=[]  # Define observables as needed
+        outputs=['metabolite_concentration', 'gene_expression']  # Replace with actual observables
     )
-    demo_workflow.to_json('sed2demo1')
 
-    demo_workflow
-
-
-
-    # 2
-    demo_workflow = SEDBuilder(ontologies=['KISAO', 'sbml', 'biomodels'])
-    demo_workflow.add_model('model1', 'biomodels:BIOMD0000000246')
-    demo_workflow.add_simulator('simulator1', 'KISAO:CVODE')
+    # Export the SED-ML document as JSON and as an archive for execution
+    simulation_workflow.to_json('cellular_response_experiment')
+    simulation_workflow.to_archive('cellular_response_experiment')
 
 
-    demo_workflow.add_task(
-        'initial_simulations',
-        inputs=[],
-        outputs=[])
 
-    demo_workflow['initial_simulations'].add_simulation(
-        'sim1',
-        simulator_id='simulator1',
-                                                                      model_id='model1',
-        start_time=0,
-        end_time=100,
-                                                                      number_of_points=1000,
-                                                                      observables=['observable1', 'observable2'])
 
-    demo_workflow.to_json('sed2demo2')
+
+
+
 
 
 
