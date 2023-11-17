@@ -6,7 +6,7 @@ class SEDBuilder(Builder):
         self['ontologies'] = ontologies
         self['models'] = Node()
         self['simulators'] = Node()
-        self['tasks'] = Node()
+        # self['tasks'] = Node()
 
     def add_model(
             self, 
