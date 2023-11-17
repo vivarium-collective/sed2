@@ -95,6 +95,10 @@ class Node(dict):
         })
         return self[name]  # Return the new node
 
+    def add_repeated_task(self, name, range=None, inputs=None, outputs=None):
+        pass
+    
+
 class Builder(Node):
 
     def __init__(self, tree=None):
