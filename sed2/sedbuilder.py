@@ -1,7 +1,7 @@
 from sed2.builder import Builder, Node
 import json
 class SEDBuilder(Builder):
-    def __init__(self, ontologies, tree=None):
+    def __init__(self, ontologies=None, tree=None):
         super().__init__(tree)
         self['ontologies'] = ontologies
         self['models'] = Node()
